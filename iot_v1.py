@@ -6,7 +6,8 @@ app = Flask(__name__)
 # Ruta principal de prueba (GET)
 @app.route('/')
 def home():
-    return 'API Flask funcionando correctamente ✅'
+    ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+    return f'API Flask funcionando correctamente ✅\nTu IP es: {ip}'
 
 # Ruta para recibir datos del ESP32 (POST)
 @app.route('/api/datos', methods=['POST'])
