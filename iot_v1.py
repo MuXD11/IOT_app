@@ -15,8 +15,8 @@ def recibir_datos():
     data = request.get_json()
     if not isinstance(data, list):
         data = [data]  # por si solo viene un objeto
-    registros = []
-    for entrada in data:
+    registros = []   # lista vacía
+    for entrada in data:# Bucle para la lista de entrada
         if 'sensor' not in entrada or 'valor' not in entrada:
             continue
         sensor = entrada['sensor']
