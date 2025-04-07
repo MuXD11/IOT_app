@@ -13,24 +13,30 @@ def home():
 @app.route('/api/datos', methods=['POST'])
 def recibir_datos():
     data = request.get_json()
-
-    if not data or 'sensor' not in data or 'valor' not in data:
-        return jsonify({'error': 'Faltan campos requeridos (sensor, valor)'}), 400
-
-    sensor = data['sensor']
-    valor = data['valor']
-    timestamp = datetime.utcnow().isoformat()
-
-    # Mostrar en consola para debug
-    print(f"[{timestamp}] Sensor: {sensor} - Valor: {valor}")
-
-    # Respuesta a quien haya enviado el dato
+    if not isinstance(data, list):
+        data = [data]  # por si solo viene un objeto
+    registros = []
+    for entrada in data:
+        if 'sensor' not in entrada or 'valor' not in entrada:
+            continue
+        sensor = entrada['sensor']
+        valor = entrada['valor']
+        timestamp = datetime.utcnow().isoformat()
+        print(f"[{timestamp}] Sensor: {sensor} - Valor: {valor}")
+        registros.append({
+            'sensor': sensor,
+            'valor': valor,
+            'timestamp': timestamp
+        })
     return jsonify({
         'mensaje': 'Datos recibidos correctamente',
-        'sensor': sensor,
-        'valor': valor,
-        'timestamp': timestamp
+        'registros': registros
     }), 200
+# Estructura de datos y trama para hacer POST:
+# curl -X POST https://iot-app-test1.onrender.com/api/datos -H "Content-Type: application/json" -d "[{\"sensor\":\"temperatura\",\"valor\":23.5}, {\"sensor\":\"presion\",\"valor\":1000}]"
+# NOTAS: - Se utiliza \" dentro de la cadena para emular "
+#        - el header es necesario para hacer un POST de un dato JSON: -H "Content-Type: application/json"
+#        - respuesta esperada: [FECHA] "POST /api/datos HTTP/1.1" 200 xxx "-" "curl/8.7.1"   
 
 if __name__ == '__main__':
     #app.run(debug=True)
