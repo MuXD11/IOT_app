@@ -1,21 +1,9 @@
 from flask import Flask, request, jsonify
 from datetime import datetime
-from influxdb_client import InfluxDBClient, Point
-from influxdb_client.client.write_api import SYNCHRONOUS
 
 app = Flask(__name__)
+datos_recibidos = [] # Variable global de datosrecibidos  del ESP32
 
-# Variable global de datosrecibidos  del ESP32
-datos_recibidos = [] 
-
-# Configuración de InfluxDB
-INFLUXDB_URL = "https://eu-central-1-1.aws.cloud2.influxdata.com" 
-INFLUXDB_TOKEN = "KNHuhH5zKfNE6c6il4Jrqt-d-J9BaKPxmK4fpceYQiLbhGdyCNCk2p-z5mR6UYWZNOgoe-JAZo9f_GB-_3RNaw=="
-INFLUXDB_ORG = "I_SOFTW"
-INFLUXDB_BUCKET = "IOT_BUCKET"
-
-client_IDB = InfluxDBClient(url=INFLUXDB_URL, token=INFLUXDB_TOKEN, org=INFLUXDB_ORG)
-write_api = client_IDB.write_api(write_options=SYNCHRONOUS)
 
 ####### Ruta principal de prueba (GET)
 @app.route('/')
@@ -41,7 +29,7 @@ def recibir_datos():
 
     for entrada in data:
         if 'sensor' not in entrada or 'valor' not in entrada:
-            salida.append(" Entrada inválida (falta sensor o valor)\n")
+            salida.append("❌ Entrada inválida (falta sensor o valor)\n")
             continue
 
         sensor = entrada['sensor']
@@ -53,17 +41,8 @@ def recibir_datos():
             'valor': valor,
             'timestamp': timestamp
         })
-        
-        # Escribir en la variable para envíar a InfluxDB 
-        point = (
-        Point("lecturas")                    
-        .tag("sensor", sensor)               
-        .field("valor", float(valor))        
-        .time(timestamp)             
-        )
-
-        # Escribir en el BUCKET InfluxDB
-        write_api.write(bucket=INFLUXDB_BUCKET, org=INFLUXDB_ORG, record=point)
+        #Guardado de datos en variable global
+    
 
         # Imprimir en logs (Render)
         print(f"[{timestamp}] Sensor: {sensor} - Valor: {valor}")
@@ -132,4 +111,3 @@ if __name__ == '__main__':
 # NOTAS: - Se utiliza \" dentro de la cadena para emular "
 #        - el header es necesario para hacer un POST de un dato JSON: -H "Content-Type: application/json"
 #        - respuesta esperada: [FECHA] "POST /api/datos HTTP/1.1" 200 xxx "-" "curl/8.7.1"   
-# Point es la unidad básica de datos en InfluxDB
