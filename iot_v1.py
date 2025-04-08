@@ -87,16 +87,16 @@ def generar_html_datos(arg):        #Función global para imprimir datos por pan
             html += f"<li><strong>{sensor}</strong>: {valor}</li>"
         html += "</ul>" 
 
-    html += """
+    html += """     
         <script>
             setTimeout(() => {
                 window.location.reload();
-            }, 5000);  // recarga cada 5 segundos
+            }, 5000);  
         </script>
     </body>
     </html>
     """
-
+    # Script que recarga cada 5 segundos el navegador
     return html
 
 
