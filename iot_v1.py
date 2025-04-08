@@ -1,8 +1,22 @@
 from flask import Flask, request, jsonify
-from datetime import datetime
+from datetime import datetime, timezone
+from influxdb_client import InfluxDBClient, Point
+from influxdb_client.client.write_api import SYNCHRONOUS
 
 app = Flask(__name__)
-datos_recibidos = [] # Variable global de datosrecibidos  del ESP32
+
+# Variable global de datosrecibidos  del ESP32. Se guarda en la RAM del servidor y se borra a los 15 minutos
+# Cuidado!: Investigar para guardado persistente.
+datos_recibidos = [] 
+ 
+ # Configuración de InfluxDB
+INFLUXDB_URL = "https://eu-central-1-1.aws.cloud2.influxdata.com" 
+INFLUXDB_TOKEN = "KNHuhH5zKfNE6c6il4Jrqt-d-J9BaKPxmK4fpceYQiLbhGdyCNCk2p-z5mR6UYWZNOgoe-JAZo9f_GB-_3RNaw=="
+INFLUXDB_ORG = "I_SOFTW"
+INFLUXDB_BUCKET = "IOT_BUCKET"
+ 
+client_IDB = InfluxDBClient(url=INFLUXDB_URL, token=INFLUXDB_TOKEN, org=INFLUXDB_ORG)
+write_api = client_IDB.write_api(write_options=SYNCHRONOUS)
 
 
 ####### Ruta principal de prueba (GET)
@@ -41,8 +55,16 @@ def recibir_datos():
             'valor': valor,
             'timestamp': timestamp
         })
-        #Guardado de datos en variable global
-    
+        # Escribir en la variable para envíar a InfluxDB 
+        point = (
+        Point("lecturas")                    
+        .tag("sensor", sensor)               
+        .field("valor", float(valor))        
+        .time(datetime.now(timezone.utc))             
+        )
+ 
+        # Escribir en el BUCKET InfluxDB
+        write_api.write(bucket=INFLUXDB_BUCKET, org=INFLUXDB_ORG, record=point)    
 
         # Imprimir en logs (Render)
         print(f"[{timestamp}] Sensor: {sensor} - Valor: {valor}")
@@ -111,3 +133,7 @@ if __name__ == '__main__':
 # NOTAS: - Se utiliza \" dentro de la cadena para emular "
 #        - el header es necesario para hacer un POST de un dato JSON: -H "Content-Type: application/json"
 #        - respuesta esperada: [FECHA] "POST /api/datos HTTP/1.1" 200 xxx "-" "curl/8.7.1"   
+# "Point" es la unidad básica de datos en InfluxDB
+
+
+# NOTA IMPORTANTE: Cada vez que se instale una nueva librería, es obligatorio hacer: pip freeze > requirements.txt
