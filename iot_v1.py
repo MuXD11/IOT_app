@@ -58,17 +58,47 @@ def representar_datos():
  
 
 
+       
 def generar_html_datos(arg):        #Función global para imprimir datos por pantalla. Devuelve un html
     print("Ejecutando función global de muestra de datos")
+
+    html = """
+    <html>
+    <head>
+        <title>Datos Recibidos</title>
+        <meta charset="UTF-8">
+        <style>
+            body { font-family: Arial, sans-serif; padding: 20px; }
+            ul { list-style-type: none; padding: 0; }
+            li { margin: 8px 0; }
+        </style>
+    </head>
+    <body>
+        <h2>Datos recibidos</h2>
+    """
+
     if not arg:
-        return "<h2>Error, no hay datos</h2>"
-    html = "<h2> Datos recibidos</h2><ul>"    #<ul> = unordered list
-    for item in arg:
-        sensor = item.get('sensor', 'N/A')
-        valor = item.get('valor', 'N/A')
-        html += f"<li><strong>{sensor}</strong>: {valor}</li>"
-    html += "</ul>"
+        html += "<p>No se han recibido datos aún.</p>"
+    else:
+        html += "<ul>"                   #<ul> = unordered list
+        for item in arg:
+            sensor = item.get('sensor', 'N/A')
+            valor = item.get('valor', 'N/A')
+            html += f"<li><strong>{sensor}</strong>: {valor}</li>"
+        html += "</ul>" 
+
+    html += """
+        <script>
+            setTimeout(() => {
+                window.location.reload();
+            }, 5000);  // recarga cada 5 segundos
+        </script>
+    </body>
+    </html>
+    """
+
     return html
+
 
 if __name__ == '__main__':
     #app.run(debug=True)
